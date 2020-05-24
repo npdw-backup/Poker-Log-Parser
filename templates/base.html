@@ -1,0 +1,17 @@
+<html>
+   <head>
+      <title>{% block title %}Default title{% end %}</title>
+   </head>
+   <body>
+      <ul>
+         {% for stat in stats %}
+         {% block student %}
+         <h2>{{ stat }}</h2>
+            {% for name in sorted(stats[stat]) %}
+               <li>{{ name }}: {{ stats[stat][name] }} </li>
+            {% end %}
+         {% end %}
+         {% end %}
+      </ul>
+   </body>
+</html>
