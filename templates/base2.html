@@ -31,8 +31,8 @@
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
     <style>
       .page.active {
-    width: calc(100%);
-}
+        width: calc(100%);
+      }
     </style>
   </head>
   <body>
@@ -138,5 +138,25 @@
     <script src="https://d19m59y37dris4.cloudfront.net/dashboard/1-4-7/vendor/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
     <!-- Main File-->
     <script src="https://d19m59y37dris4.cloudfront.net/dashboard/1-4-7/js/front.js"></script>
+    <script>
+      window.setInterval(function(){
+        $.ajax({
+          type:'post',
+          url:'update',
+          data:{
+            latest:parseInt("{{ stats['latest'] }}")
+          },
+          success:function(response) {
+            var json = $.parseJSON(response);
+            if (json.refresh) {
+              console.log(json.refresh);
+              window.location.reload(false);
+              return false
+            }
+          }
+        });
+
+      }, 1000);
+    </script>
   </body>
 </html>

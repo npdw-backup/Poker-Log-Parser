@@ -1,6 +1,5 @@
 """
 PokerNow Logs Web Based
-
 Currently static because effort.
 """
 import argparse
@@ -31,12 +30,16 @@ parser.add_argument('-g', '--game-id', type=str, default='2VQEY-Vn6ggeXBtg7mUkXY
 cmd_args = parser.parse_args()
 
 
-GAME_ID = 'YiGSaUBmpPnB2pB8prARt-QhR'
+GAME_ID = 'VWL0-d5DNl82hcFbAiRdctzzL'
+
+GAME_IDS = {"23.05": 'YiGSaUBmpPnB2pB8prARt-QhR', "20.05": '200520-dontknowgameid'}
+
 
 
 class GameManager(object):
    stats = None
    hands = {}
+   latest = 0
 
    def __init__(self, game_id):
       stats_file = 'stats/%s.csv' % GAME_ID
@@ -45,21 +48,7 @@ class GameManager(object):
             data = f.read()
             # self.stats = data
 
-   def get_formatted(self, dec_places=4):
-      formatted_stats = {"stats": {}, "details": {}}
-
-      # Rounding
-      for stat_name, stat in self.stats.items():
-         formatted_stats['stats'][stat_name] = {"values": {}}
-
-         for name, val in stat.items():
-            formatted_stats['stats'][stat_name]['values'][name] = round(val, dec_places)
-
-      # Add docstring
-      for stat in StatsParser.STAT_CLASSES:
-         stat_class = stat({})
-         formatted_stats['stats'][stat_class.__name__]['desc'] = stat_class.__doc__
-
+   def overall_stats(self, formatted_stats):
       # Add overall stats
       formatted_stats['details']['hands_played'] = {
          "title": "Hands Played",
@@ -83,6 +72,35 @@ class GameManager(object):
       return formatted_stats
 
 
+   def get_formatted(self, dec_places=4):
+      formatted_stats = {"stats": {}, "details": {}}
+
+      # Rounding
+      for stat_name, stat in self.stats.items():
+         formatted_stats['stats'][stat_name] = {"values": {}}
+
+         for name, val in stat.items():
+            try:
+               formatted_stats['stats'][stat_name]['values'][name] = round(val, dec_places)
+            except:
+               print('OH NO')
+               print(dec_places)
+               raise Exception
+
+      # Add docstring
+      for stat in StatsParser.STAT_CLASSES:
+         stat_class = stat({})
+         formatted_stats['stats'][stat_class.__name__]['desc'] = stat_class.__doc__
+
+      # Add overall game stats
+      formatted_stats = self.overall_stats(formatted_stats)
+
+      # Add latest log_id for ajax
+      formatted_stats['latest'] = max(self.hands.keys())
+
+      return formatted_stats
+
+
 
 game_manager = GameManager(GAME_ID)
 
@@ -92,7 +110,6 @@ class HelloWorldHandler(tornado.web.RequestHandler):
    """Simplest Hello World handler"""
    async def get(self):
       if game_manager.stats:
-         # self.write(json.dumps(game_manager.stats, indent=4))
          loader = template.Loader("templates")
          formatted_stats = game_manager.get_formatted()
          self.write(loader.load("base2.html").generate(stats=formatted_stats))
@@ -100,6 +117,17 @@ class HelloWorldHandler(tornado.web.RequestHandler):
       else:
          self.write('Nothing yet, stay calm Dan')
       # self.write('Hello, world\nExample API is up!\n')
+
+
+class UpdateStatsHandler(tornado.web.RequestHandler):
+   """Checks for new stats available"""
+   async def post(self):
+      client_latest = int(self.request.arguments.get('latest')[0])
+      if game_manager.hands.keys() and client_latest != max(game_manager.hands.keys()):
+         self.write(json.dumps({'refresh': True}))
+      else:
+         self.write(json.dumps({'refresh': False}))
+      self.finish()
 
 
 class Server(object):
@@ -111,9 +139,9 @@ class Server(object):
 
       self.ioloop = tornado.ioloop.IOLoop.current()
       # Testing frontend
-      # pc = tornado.ioloop.PeriodicCallback(self.periodic_callback, 20 * 1000,
-      #                                      jitter=0.1)
-      # pc.start()
+      pc = tornado.ioloop.PeriodicCallback(self.periodic_callback, 20 * 1000,
+                                           jitter=0.1)
+      pc.start()
       self.ioloop.add_callback(self.periodic_callback)
       self.ioloop.start()
 
@@ -122,6 +150,7 @@ class Server(object):
       self.log.info('event="calling-logs"')
       await self.app.game_tracker.listen()
       if self.app.game_tracker.updates:
+      # if True:
          self.log.info('event="applying-updates"')
          await self.app.log_parser.parse_file()
          self.app.stats_parser.parse_file()
@@ -130,16 +159,14 @@ class Server(object):
          game_manager.hands = self.app.log_parser.hands
       self.log.info('event="finished-calling-logs"')
 
-
-
-
    def make_app(self):
       app = tornado.web.Application([
          # Additional endpoints to test the service is up and running.
          (r"/stats", HelloWorldHandler),
+         (r"/update", UpdateStatsHandler)
       ])
       app.game_tracker = GameTracker(GAME_ID)
-      app.stats_parser = StatsParser(GAME_ID)
+      app.stats_parser = StatsParser(GAME_ID) #, single=False, game_ids=GAME_IDS, filename="20.05-25.05")
       app.log_parser = LogParser(GAME_ID)
 
       return app

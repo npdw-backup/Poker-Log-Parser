@@ -13,15 +13,27 @@ class StatsParser(object):
    STAT_CLASSES = [VPIP, PFR, ThreeBet, FourBet, AF, AFq, BetF, BetT, BetR,
                    CvFCB, FDONK, FDONK10]
 
-   def __init__(self, game_id):
-      self.game_id = game_id
-      self.stats_filename = 'stats/%s.csv' % self.game_id
-      self.json_filename = 'hands/%s.json' % self.game_id
-      self.stats = {}
-      self.data = {}
+   def __init__(self, game_id, single=True, game_ids={}, filename=None):
+      self.single = single
+      if single:
+         self.game_id = game_id
+         self.stats_filename = 'stats/%s.csv' % self.game_id
+         self.json_filename = 'hands/%s.json' % self.game_id
+         self.stats = {}
+         self.data = {}
 
-      if not os.path.isdir('stats'):
-         os.mkdir('stats')
+         if not os.path.isdir('stats'):
+            os.mkdir('stats')
+      else:
+         self.game_id = game_id
+         self.game_ids = game_ids
+         self.stats_filename = 'stats/%s.csv' % filename
+         self.json_filename = 'hands/%s.json'
+         self.stats = {}
+         self.data = {}
+
+         if not os.path.isdir('stats'):
+            os.mkdir('stats')
 
 
    def parse(self):
@@ -40,12 +52,36 @@ class StatsParser(object):
          f.writerow(row)
 
    def parse_file(self):
-      unsorted_data = json.loads(Utils.read_file(self.json_filename))
-      for hand_no, hand in unsorted_data.items():
-         if hand.get('winner', {}).get('amount'):
-            self.data[hand_no] = hand
+      if self.single:
+         unsorted_data = json.loads(Utils.read_file(self.json_filename))
+         for hand_no, hand in unsorted_data.items():
+            if hand.get('winner', {}).get('amount'):
+               self.data[hand_no] = hand
 
-      self.parse()
+         self.parse()
+      else:
+         keys_sorted = sorted(self.game_ids.keys())
+         print(keys_sorted)
+         print([self.json_filename % self.game_ids[json_filename] for json_filename in keys_sorted])
+         unsorted_data = [json.loads(Utils.read_file(self.json_filename % self.game_ids[json_filename])) for json_filename in keys_sorted]
+         for data in unsorted_data:
+            self.data = {}
+            for hand_no, hand in data.items():
+               if hand.get('winner', {}).get('amount'):
+                  self.data[hand_no] = hand
+
+            self.parse()
+
+         self.data = {}
+         for data in unsorted_data:
+            count = 0
+            for hand_no, hand in data.items():
+               if hand.get('winner', {}).get('amount'):
+                  self.data[count] = hand
+                  count += 1
+
+            self.parse()
+
 
 
 
