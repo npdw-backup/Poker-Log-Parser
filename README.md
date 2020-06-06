@@ -2,7 +2,7 @@
 Poker Now Log Parser
 
 Parses Poker Now logs live.
-Doesn't track stacks at all. Way too painful of a task.
+Does track stacks.
 
 Slaps stats onto a webpage. Looks kinda good.
 
