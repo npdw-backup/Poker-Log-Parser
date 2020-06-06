@@ -77,7 +77,9 @@ class BaseStats(object):
 
 class VPIP(BaseStats):
    """
-   Voluntarily placed in preflop
+   Voluntarily placed cash in preflop. Does not count big blind contribution.
+
+
    """
    __name__ = 'VPIP'
 
@@ -364,8 +366,11 @@ class AFq(BaseStats):
       output = {}
       print(self.__name__)
       for user, hands in self.users.items():
-         output[user] = (float(hands['aggressive']) /
-                           float(hands['aggressive']+hands['passive']))
+         try:
+            output[user] = (float(hands['aggressive']) /
+                              float(hands['aggressive']+hands['passive']))
+         except:
+            output[user] = 0
          print('%s: %s' % (user, output[user]))
       return output
 
@@ -408,8 +413,11 @@ class BetF(BaseStats):
       output = {}
       print(self.__name__)
       for user, hands in self.users.items():
-         output[user] = (float(hands['bet']) /
-                           float(hands['bet']+hands['not_bet']))
+         try:
+            output[user] = (float(hands['bet']) /
+                              float(hands['bet']+hands['not_bet']))
+         except:
+            output[user] = 0
          print('%s: %s' % (user, output[user]))
       return output
 
@@ -452,8 +460,11 @@ class BetT(BaseStats):
       output = {}
       print(self.__name__)
       for user, hands in self.users.items():
-         output[user] = (float(hands['bet']) /
-                           float(hands['bet']+hands['not_bet']))
+         try:
+            output[user] = (float(hands['bet']) /
+                              float(hands['bet']+hands['not_bet']))
+         except:
+            output[user] = 0
          print('%s: %s' % (user, output[user]))
       return output
 
@@ -496,8 +507,11 @@ class BetR(BaseStats):
       output = {}
       print(self.__name__)
       for user, hands in self.users.items():
-         output[user] = (float(hands['bet']) /
-                           float(hands['bet']+hands['not_bet']))
+         try:
+            output[user] = (float(hands['bet']) /
+                              float(hands['bet']+hands['not_bet']))
+         except:
+            output[user] = 0
          print('%s: %s' % (user, output[user]))
       return output
 
@@ -597,8 +611,11 @@ class FDONK(BaseStats):
       output = {}
       print(self.__name__)
       for user, hands in self.users.items():
-         output[user] = (float(hands['donk_bet']) /
-                           float(hands['not_donk_bet']+hands['donk_bet']))
+         try:
+            output[user] = (float(hands['donk_bet']) /
+                              float(hands['not_donk_bet']+hands['donk_bet']))
+         except:
+            output[user] = 0
          print('%s: %s' % (user, output[user]))
       return output
 
@@ -608,6 +625,9 @@ class FDONK10(BaseStats):
    aggressor) and ignoring the strategic 10p bet.
 
    (donk bet)/(checks + folds before preflop aggressor).
+
+   If somebody does a big blind donk bet, the next raise (before preflop
+   aggressor) will count as the donk bet.
 
    Smaller FDONK-Josh/FDONK implies better player.
    """
@@ -648,7 +668,10 @@ class FDONK10(BaseStats):
       output = {}
       print(self.__name__)
       for user, hands in self.users.items():
-         output[user] = (float(hands['donk_bet']) /
-                           float(hands['not_donk_bet']+hands['donk_bet']))
+         try:
+            output[user] = (float(hands['donk_bet']) /
+                              float(hands['not_donk_bet']+hands['donk_bet']))
+         except:
+            output[user] = 0
          print('%s: %s' % (user, output[user]))
       return output
