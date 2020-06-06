@@ -27,6 +27,7 @@ class LogParser(object):
       self.GAME_ID = game_id
       self.FILE = 'logs/%s.csv' % self.GAME_ID
       self.http_client = AsyncHTTPClient
+      self.latest = 0
 
    @property
    def hands(self):
@@ -121,12 +122,17 @@ class LogParser(object):
          pass
 
       def parse_start(action):
-         hand_no_start = action.find('starting hand #') + 15
-         hand_no_end = action.find('(dealer') - 1
-         if hand_no_end == -2:
-            # Dead button, no dealer
-            hand_no_end = action.find('(dead button') - 1
-         hand_no = int(action[hand_no_start:hand_no_end])
+         # hand_no_start = action.find('starting hand #') + 15
+         # hand_no_end = action.find('(dealer') - 1
+         # if hand_no_end == -2:
+         #    # Dead button, no dealer
+         #    hand_no_end = action.find('(dead button') - 1
+         # hand_no = int(action[hand_no_start:hand_no_end].split(' ')[1])
+         # dealer = find_user(action)
+         # HANDS[hand_no] = {'dealer': dealer[0]}
+         number_start = action.find('#')
+         dealer_end = action.find('@')
+         hand_no = int(action[number_start:].split(' ')[0][1:])
          dealer = find_user(action)
          HANDS[hand_no] = {'dealer': dealer[0]}
          return hand_no
