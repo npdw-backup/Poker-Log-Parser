@@ -4,6 +4,8 @@ class BaseStats(object):
    def __init__(self, data):
       self.data = data
       self.users = {}
+      self.numerator = 0
+      self.denominator = 0
 
    def small_blind(self, hand_no):
       if not self.data.get(hand_no):
@@ -128,6 +130,13 @@ class VPIP(BaseStats):
          print('%s: %s' % (user, output[user]))
       return output
 
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (len(hands['hands_volunteered']), len(hands['hands_played']))
+      return output
+
 
 class PFR(BaseStats):
    """PFR tracks the percentage of hands in which a particular player makes a
@@ -180,6 +189,13 @@ class PFR(BaseStats):
          print('%s: %s' % (user, output[user]))
       return output
 
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (hands['raise'], hands['raise']+hands['not_raise'])
+      return output
+
 
 class ThreeBet(BaseStats):
    """
@@ -225,6 +241,13 @@ class ThreeBet(BaseStats):
       for user, hands in self.users.items():
          output[user] = float(len(hands['hands_three_bet'])) / float(len(hands['hands_played']))
          print('%s: %s' % (user, output[user]))
+      return output
+
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (len(hands['hands_three_bet']), len(hands['hands_played']))
       return output
 
 
@@ -275,6 +298,13 @@ class FourBet(BaseStats):
          print('%s: %s' % (user, output[user]))
       return output
 
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (len(hands['hands_four_bet']), len(hands['hands_played']))
+      return output
+
 
 class AF(BaseStats):
    """Aggression factor. A ratio of how often a player takes an aggressive
@@ -322,6 +352,13 @@ class AF(BaseStats):
          except:
             output[user] = 0
          print('%s: %s' % (user, output[user]))
+      return output
+
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (hands['aggressive'], hands['passive'])
       return output
 
 
@@ -374,6 +411,13 @@ class AFq(BaseStats):
          print('%s: %s' % (user, output[user]))
       return output
 
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (hands['aggressive'], hands['aggressive']+hands['passive'])
+      return output
+
 
 class BetF(BaseStats):
    """How often a player bet the flop when given the opportunity.
@@ -419,6 +463,13 @@ class BetF(BaseStats):
          except:
             output[user] = 0
          print('%s: %s' % (user, output[user]))
+      return output
+
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (hands['bet'], hands['bet']+hands['not_bet'])
       return output
 
 
@@ -468,6 +519,13 @@ class BetT(BaseStats):
          print('%s: %s' % (user, output[user]))
       return output
 
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (hands['bet'], hands['bet']+hands['not_bet'])
+      return output
+
 
 class BetR(BaseStats):
    """How often a player bet the river when given the opportunity.
@@ -513,6 +571,13 @@ class BetR(BaseStats):
          except:
             output[user] = 0
          print('%s: %s' % (user, output[user]))
+      return output
+
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (hands['bet'], hands['bet']+hands['not_bet'])
       return output
 
 
@@ -566,6 +631,13 @@ class CvFCB(BaseStats):
          print('%s: %s' % (user, output[user]))
       return output
 
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (hands['call_cbet'], hands['call_cbet']+hands['fold_cbet'])
+      return output
+
 
 class FDONK(BaseStats):
    """How often a player donk bet the flop (by betting into the preflop
@@ -617,6 +689,13 @@ class FDONK(BaseStats):
          except:
             output[user] = 0
          print('%s: %s' % (user, output[user]))
+      return output
+
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (hands['donk_bet'], hands['not_donk_bet']+hands['donk_bet'])
       return output
 
 
@@ -674,4 +753,11 @@ class FDONK10(BaseStats):
          except:
             output[user] = 0
          print('%s: %s' % (user, output[user]))
+      return output
+
+   def num_denom(self):
+      output = {}
+      print(self.__name__)
+      for user, hands in self.users.items():
+         output[user] = (hands['donk_bet'], hands['not_donk_bet']+hands['donk_bet'])
       return output

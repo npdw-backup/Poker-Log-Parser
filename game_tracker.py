@@ -6,7 +6,7 @@ import urllib
 from tornado.httpclient import AsyncHTTPClient
 
 from get_cookie import GetCookie
-
+from utils import Utils
 
 class GameTracker(object):
    def __init__(self, game_id):
@@ -15,30 +15,13 @@ class GameTracker(object):
       self.FILENAME = 'logs/%s.csv' % self.GAME_ID
       self.updates = False
       self.http_client = AsyncHTTPClient()
-
-   def line_prepender(self, filename, line):
-      file_dir = '/'.join(filename.split('/')[:-1])
-      if not os.path.isdir(file_dir):
-         os.mkdir(file_dir)
-      if not os.path.isfile(filename):
-         with open(filename, 'w') as f:
-            pass
-
-      with open(filename, 'r+') as f:
-         content = f.read()
-
-         if not content and '-- starting hand' not in line:
-            # Only want to start writing to file at beginning of hand
-            return
-
-         f.seek(0, 0)
-         f.write(line.rstrip('\r\n') + '\n' + content)
+      self.new_content = None
 
    def write_to_file(self, events):
       for event in events:
          action = "\"" + event['msg'].replace("\"", "\"\"") + "\""
          line = ','.join([action, event['at'], event['created_at']])
-         self.line_prepender(self.FILENAME, line)
+         Utils.line_prepender(self.FILENAME, line)
 
    def get_max_time(self, filename):
       if not os.path.isfile(filename):
@@ -76,10 +59,10 @@ class GameTracker(object):
       }
       req = await self.http_client.fetch(self.LOG_URL, headers=headers)
       content = req.body
-      json_content = json.loads(content)
+      self.new_content = json.loads(content)
 
-      self.updates = self.parse_json(json_content)
-      self.updates = True
+      self.updates = self.parse_json(self.new_content)
+      # self.updates = True
 
 
 
